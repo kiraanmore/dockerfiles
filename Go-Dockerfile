@@ -1,0 +1,25 @@
+FROM golang:latest AS build
+
+RUN mkdir /build
+
+WORKDIR /build
+
+COPY . /build/
+
+RUN go mod init goapp
+
+RUN go mod download
+
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o goapp .
+
+FROM golang:latest
+
+#Copy the build's output binary from the previous build container
+
+RUN mkdir /build
+
+COPY --from=build /build/goapp /build/goapp
+
+EXPOSE 80
+
+ENTRYPOINT ["/build/goapp"]
